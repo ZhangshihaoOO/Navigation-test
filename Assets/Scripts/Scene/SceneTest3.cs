@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using FluffyUnderware.Curvy;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Scene
 {
@@ -22,28 +23,26 @@ namespace Scene
         private const float WorldWidth = 1280f / 2; // 世界宽度
         private const float WorldHeight = 731f / 2; // 世界高度
 
-        private const int MaxStep = 240;
-
         private bool isDrag;
 
-        private void OnValidate()
-        {
-            List<Vector2> pathPoints = new List<Vector2>();
-            float step = 1f / MaxStep;
-            foreach (var tmp in splines)
-            {
-                Vector2 beginPosition = tmp.transform.localPosition;
-                for (int i = 0; i <= MaxStep; i++)
-                {
-                    Vector3 worldPos = tmp.Interpolate(i * step);
-                    pathPoints.Add(new Vector2(worldPos.x, worldPos.y) + beginPosition);
-                }
-            }
-
-            // 设置多边形碰撞器的路径
-            polygonCollider2D.pathCount = 1;
-            polygonCollider2D.SetPath(0, pathPoints.ToArray());
-        }
+        // private void OnValidate()
+        // {
+        //     List<Vector2> pathPoints = new List<Vector2>();
+        //     float step = 1f / MaxStep;
+        //     foreach (var tmp in splines)
+        //     {
+        //         Vector2 beginPosition = tmp.transform.localPosition;
+        //         for (int i = 0; i <= MaxStep; i++)
+        //         {
+        //             Vector3 worldPos = tmp.Interpolate(i * step);
+        //             pathPoints.Add(new Vector2(worldPos.x, worldPos.y) + beginPosition);
+        //         }
+        //     }
+        //
+        //     // 设置多边形碰撞器的路径
+        //     polygonCollider2D.pathCount = 1;
+        //     polygonCollider2D.SetPath(0, pathPoints.ToArray());
+        // }
 
         private void Awake()
         {
