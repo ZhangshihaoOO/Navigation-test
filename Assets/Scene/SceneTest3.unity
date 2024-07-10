@@ -22587,6 +22587,7 @@ GameObject:
   - component: {fileID: 977002110}
   - component: {fileID: 977002109}
   - component: {fileID: 977002113}
+  - component: {fileID: 977002114}
   m_Layer: 5
   m_Name: root
   m_TagString: Untagged
@@ -22699,6 +22700,18 @@ MonoBehaviour:
   aStar: {fileID: 1054573746}
   ui: {fileID: 631912114}
   test: {fileID: 8269127200589333675, guid: 78b060eabd1de3345b2857e7749ebafa, type: 3}
+--- !u!225 &977002114
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 977002108}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &978958736
 GameObject:
   m_ObjectHideFlags: 0
@@ -23496,7 +23509,7 @@ MonoBehaviour:
     seed: 0
     pivotPointRoot: {fileID: 0}
     spreadOutCount: 1
-  showGraphs: 1
+  showGraphs: 0
 --- !u!1 &1076015435
 GameObject:
   m_ObjectHideFlags: 0

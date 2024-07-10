@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using FluffyUnderware.Curvy;
 using Pathfinding;
 using UnityEngine;
@@ -61,10 +62,87 @@ namespace Scene
             }
         }
 
+        private static readonly Color WhiteTransparent = new Color(1, 1, 1, 0);
+        public static readonly Color DefaultColor = new Color(1, 1, 1, 0.5f);
+
+        private bool eventSystem;
+
+        private void Disable()
+        {
+            CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+            eventSystem = false;
+        }
+
+        public void Enable()
+        {
+            CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+            eventSystem = true;
+        }
+
         private void Start()
         {
+            Disable();
             //网格ui动画
-            
+            GridGraph gridGraph = aStar.data.gridGraph;
+            int width = gridGraph.width;
+            int height = gridGraph.depth;
+
+            float startDelay = 0;
+            float endDelay = 0.3f + 0.05f * width;
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
+                    int index = i + j * width;
+                    Transform tmp = ui.GetChild(index);
+                    if (tmp.TryGetComponent(out Image image))
+                    {
+                        tmp.gameObject.SetActive(true);
+                        image.color = WhiteTransparent;
+                        image.DOFade(0.5f, 0.3f).SetDelay(startDelay);
+                        image.DOFade(0, 0.3f).SetDelay(endDelay + startDelay).OnComplete(() =>
+                        {
+                            image.color = DefaultColor;
+                            tmp.gameObject.SetActive(false);
+                            if (index >= (width * height - 1))
+                            {
+                                Enable();
+                            }
+                        });
+                    }
+                }
+
+                startDelay += 0.05f;
+            }
+
+
+            // //网格ui动画
+            // for (int i = 0; i < ui.childCount; i++)
+            // {
+            //     Transform tmp = ui.GetChild(i);
+            //     Tween tween = null;
+            //     if (tmp.TryGetComponent(out Image image))
+            //     {
+            //         float delay = 0.05f * i;
+            //         tmp.gameObject.SetActive(true);
+            //         image.color = WhiteTransparent;
+            //         image.DOFade(0.5f, 0.3f).SetDelay(delay);
+            //         tween = image.DOFade(0, 0.3f).SetDelay(0.3f + delay).OnComplete(() =>
+            //         {
+            //             image.color = DefaultColor;
+            //             tmp.gameObject.SetActive(false);
+            //         });
+            //     }
+            //
+            //     if (i >= ui.childCount - 1 && tween != null)
+            //     {
+            //         tween.onComplete += Enable;
+            //     }
+            // }
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -112,26 +190,35 @@ namespace Scene
                 return;
             }
 
-            foreach (Transform tmp in lastActiveUiArray)
+            // foreach (Transform tmp in lastActiveUiArray)
+            // {
+            //     tmp.gameObject.SetActive(false);
+            // }
+            // lastActiveUiArray.Clear();
+            if (currentNodeArray.Count > 0)
             {
-                tmp.gameObject.SetActive(false);
+                ai.transform.DOLocalPath(currentNodeArray.ToArray(), 3f).SetEase(Ease.Linear).OnComplete(() =>
+                    {
+                        lastActiveUiArray.Clear();
+                    })
+                    .OnWaypointChange(
+                        index => { lastActiveUiArray[index].gameObject.SetActive(false); });
+                currentNodeArray.Clear();
             }
-            lastActiveUiArray.Clear();
-            if (currentPath != null)
-            {
-                
-            }
-
-            
-            if (Camera.main != null) target.localPosition = Camera.main.ScreenToWorldPoint(eventData.position);
+            // if (Camera.main != null) target.localPosition = Camera.main.ScreenToWorldPoint(eventData.position);
         }
 
         private uint lastEndNodeIndex = int.MaxValue;
         private readonly List<Transform> lastActiveUiArray = new();
-        private Path currentPath;
+        private readonly List<Vector3> currentNodeArray = new();
 
         private void Update()
         {
+            if (!eventSystem)
+            {
+                return;
+            }
+
             float scrollData = Input.GetAxis("Mouse ScrollWheel");
             var main = Camera.main;
             if (main)
@@ -143,13 +230,14 @@ namespace Scene
                     main.orthographicSize = orthographicSize;
                     main.orthographicSize = Mathf.Clamp(orthographicSize, MinZoom, MaxZoom);
                 }
+
                 // 获取鼠标在屏幕上的位置
                 Vector3 mousePosition = Input.mousePosition;
                 // 将鼠标位置转换为世界坐标
                 Vector3 worldPosition = main.ScreenToWorldPoint(mousePosition);
-                
+
                 var graphNode = aStar.data.gridGraph.GetNearest(worldPosition).node;
-                if (graphNode != null) 
+                if (graphNode != null)
                 {
                     uint index = graphNode.NodeIndex;
                     if (index != lastEndNodeIndex)
@@ -159,10 +247,11 @@ namespace Scene
                         {
                             tmp.gameObject.SetActive(false);
                         }
+
                         lastActiveUiArray.Clear();
                         aiSeeker.StartPath(ai.localPosition, worldPosition, path =>
                         {
-                            currentPath = path;
+                            currentNodeArray.Clear();
                             foreach (var node in path.path)
                             {
                                 Transform tmp = ui.Find(node.NodeIndex.ToString());
@@ -170,6 +259,7 @@ namespace Scene
                                 {
                                     tmp.gameObject.SetActive(true);
                                     lastActiveUiArray.Add(tmp);
+                                    currentNodeArray.Add(tmp.localPosition);
                                 }
                             }
                         });
