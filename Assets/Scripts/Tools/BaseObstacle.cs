@@ -10,7 +10,7 @@ namespace Tools
         /**
          * 定义障碍物计算的最大步长，值越大精度越高
          */
-        public int maxStep = 240;
+        public int maxStep = 2000;
 
         protected CurvySpline line;
 
@@ -18,7 +18,11 @@ namespace Tools
         {
             if (!line)
             {
-                line = transform.Find("line").GetComponent<CurvySpline>();
+                Transform tmp = transform.Find("line");
+                if (tmp)
+                {
+                    line = tmp.GetComponent<CurvySpline>();
+                }
             }
         }
 
@@ -33,7 +37,8 @@ namespace Tools
                 }
             };
             line = obj.AddComponent<CurvySpline>();
-            
+
+            transform.gameObject.layer = LayerMask.NameToLayer("Obstacles");
             Selection.activeGameObject = obj;
             // SceneView.lastActiveSceneView.FrameSelected();
         }
