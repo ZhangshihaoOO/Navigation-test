@@ -11,7 +11,6 @@ namespace Scene
 {
     public class SceneTest3 : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler
     {
-        public Transform target;
         public Transform ai;
         public Seeker aiSeeker;
 
@@ -63,7 +62,7 @@ namespace Scene
         }
 
         private static readonly Color WhiteTransparent = new Color(1, 1, 1, 0);
-        public static readonly Color DefaultColor = new Color(1, 1, 1, 0.5f);
+        private static readonly Color DefaultColor = new Color(1, 1, 1, 0.5f);
 
         private bool eventSystem;
 
@@ -75,7 +74,7 @@ namespace Scene
             eventSystem = false;
         }
 
-        public void Enable()
+        private void Enable()
         {
             CanvasGroup canvasGroup = GetComponent<CanvasGroup>();
             canvasGroup.interactable = true;
@@ -92,7 +91,7 @@ namespace Scene
             int height = gridGraph.depth;
 
             float startDelay = 0;
-            float endDelay = 0.3f + 0.05f * width;
+            float endDelay = 1f + 0.1f * width;
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < height; j++)
@@ -103,8 +102,8 @@ namespace Scene
                     {
                         tmp.gameObject.SetActive(true);
                         image.color = WhiteTransparent;
-                        image.DOFade(0.5f, 0.3f).SetDelay(startDelay);
-                        image.DOFade(0, 0.3f).SetDelay(endDelay + startDelay).OnComplete(() =>
+                        image.DOFade(0.5f, 1f).SetDelay(startDelay);
+                        image.DOFade(0, 1f).SetDelay(endDelay + startDelay).OnComplete(() =>
                         {
                             image.color = DefaultColor;
                             tmp.gameObject.SetActive(false);
@@ -116,7 +115,7 @@ namespace Scene
                     }
                 }
 
-                startDelay += 0.05f;
+                startDelay += 0.1f;
             }
 
 
