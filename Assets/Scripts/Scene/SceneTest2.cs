@@ -8,13 +8,13 @@ namespace Scene
         public Transform target;
         public Transform ai;
 
-        private const float ZoomSpeed = 200f; // 缩放速度
-        private const float MinZoom = 128; // 最小缩放值
-        private const float MaxZoom = 512; // 最大缩放值
+        private const float ZoomSpeed = 200f; //缩放速度
+        private const float MinZoom = 128; //最小缩放值
+        private const float MaxZoom = 512; //最大缩放值
 
         private const float DragSpeed = 400f; // 拖动速度
-        private const float WorldWidth = 1820f / 2; // 世界宽度
-        private const float WorldHeight = 1024f / 2; // 世界高度
+        private const float WorldWidth = 1820f / 2; //世界宽度
+        private const float WorldHeight = 1024f / 2; //世界高度
 
         private bool isDrag;
 
