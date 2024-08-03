@@ -17,8 +17,8 @@ namespace Editor
         private void OnEnable()
         {
             // 在 OnEnable 方法中初始化路径
-            _excelPath = Application.dataPath + "/Res/File/Excel2Json2Cs/Output/Excel/";
-            _jsonPath = Application.dataPath + "/Res/File/Excel2Json2Cs/Output/Json/";
+            _excelPath = Application.dataPath + "/NumericalSimulation/Res/Excel2Json2Cs/Output/Excel/";
+            _jsonPath = Application.dataPath + "/NumericalSimulation/Res/Excel2Json2Cs/Output/Json/";
         }
 
         private void OnGUI()
