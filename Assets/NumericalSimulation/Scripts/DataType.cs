@@ -133,12 +133,38 @@ namespace NumericalSimulation.Scripts
         /// <summary>
         /// 当前血量
         /// </summary>
-        public int nowHp;
+        private int _nowHp;
+
+        public int NowHp
+        {
+            get => _nowHp;
+            set
+            {
+                _nowHp = value;
+                if (_nowHp < 0)
+                {
+                    _nowHp = 0;
+                }
+            }
+        }
 
         /// <summary>
         /// 当前人数
         /// </summary>
-        public int nowTroops;
+        private int _nowTroops;
+
+        public int NowTroops
+        {
+            get => _nowTroops;
+            set
+            {
+                _nowTroops = value;
+                if (_nowTroops < 0)
+                {
+                    _nowTroops = 0;
+                }
+            }
+        }
 
         /// <summary>
         /// 当前弹药量
@@ -158,8 +184,8 @@ namespace NumericalSimulation.Scripts
         public ArmData(ArmData armData)
         {
             armId = armData.armId;
-            nowHp = armData.nowHp;
-            nowTroops = armData.nowTroops;
+            _nowHp = armData._nowHp;
+            _nowTroops = armData._nowTroops;
             nowAmmo = armData.nowAmmo;
             nowMorale = armData.nowMorale;
             nowFatigue = armData.nowFatigue;
@@ -168,8 +194,8 @@ namespace NumericalSimulation.Scripts
         public ArmData(ArmDataType armDataType, int id)
         {
             armId = id;
-            nowHp = armDataType.totalHp;
-            nowTroops = armDataType.totalTroops;
+            _nowHp = armDataType.totalHp;
+            _nowTroops = armDataType.totalTroops;
             nowAmmo = armDataType.ammo;
             nowMorale = armDataType.maximumMorale;
             nowFatigue = armDataType.maximumFatigue;
@@ -178,8 +204,8 @@ namespace NumericalSimulation.Scripts
         public void Reset(ArmData data)
         {
             armId = data.armId;
-            nowHp = data.nowHp;
-            nowTroops = data.nowTroops;
+            _nowHp = data._nowHp;
+            _nowTroops = data._nowTroops;
             nowAmmo = data.nowAmmo;
             nowMorale = data.nowMorale;
             nowFatigue = data.nowFatigue;

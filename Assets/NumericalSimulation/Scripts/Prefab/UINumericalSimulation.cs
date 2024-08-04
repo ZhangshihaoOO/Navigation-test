@@ -118,7 +118,7 @@ namespace NumericalSimulation.Scripts.Prefab
                 }
 
                 PrintAttackResult(arm1Old, arm1, arm2Old, arm2, index);
-                if (arm1.nowTroops <= 0 || arm2.nowTroops <= 0 || index > 100)
+                if (arm1.NowTroops <= 0 || arm2.NowTroops <= 0 || index > 100)
                 {
                     break;
                 }
@@ -135,30 +135,30 @@ namespace NumericalSimulation.Scripts.Prefab
         /// <param name="index"></param>
         private void PrintAttackResult(ArmData arm1Old, ArmData arm1, ArmData arm2Old, ArmData arm2, int index)
         {
-            string result = "在第" + index + "回合：\n";
+            string result = "在第" + index + "回合：  \t";
             switch (_attackFormType)
             {
                 case AttackFormType.ONE_WAY_ATTACK:
                 {
-                    result += "单位1对单位2发动了进攻，但是单位2没有反击。\n";
+                    result += "单位1对单位2发动了进攻，但是单位2没有反击。  \t";
                 }
                     break;
                 case AttackFormType.MUTUAL_ATTACK:
                 {
-                    result += "单位1对单位2发动了进攻，单位2进行了反击。\n";
+                    result += "单位1对单位2发动了进攻，单位2进行了反击。  \t";
                 }
                     break;
                 case AttackFormType.MUTUAL_OFFENSE:
                 {
-                    result += "单位1对单位2发动了进攻，单位2进行了反击。随后单位2也对单位1发动了进攻，单位1也进行了反击。\n";
+                    result += "单位1对单位2发动了进攻，单位2进行了反击。随后单位2也对单位1发动了进攻，单位1也进行了反击。  \t";
                 }
                     break;
             }
 
-            result += "单位1损失了" + (arm1Old.nowHp - arm1.nowHp) + "血量。损失了" + (arm1Old.nowTroops - arm1.nowTroops) +
-                      "名士兵。单位1还剩余" + arm1.nowHp + "血量以及" + arm1.nowTroops + "名士兵\n";
-            result += "单位2损失了" + (arm2Old.nowHp - arm2.nowHp) + "血量。损失了" + (arm2Old.nowTroops - arm2.nowTroops) +
-                      "名士兵。单位2还剩余" + arm2.nowHp + "血量以及" + arm2.nowTroops + "名士兵\n";
+            result += "单位1损失了" + (arm1Old.NowHp - arm1.NowHp) + "血量。损失了" + (arm1Old.NowTroops - arm1.NowTroops) +
+                      "名士兵。单位1还剩余" + arm1.NowHp + "血量以及" + arm1.NowTroops + "名士兵。  \t";
+            result += "单位2损失了" + (arm2Old.NowHp - arm2.NowHp) + "血量。损失了" + (arm2Old.NowTroops - arm2.NowTroops) +
+                      "名士兵。单位2还剩余" + arm2.NowHp + "血量以及" + arm2.NowTroops + "名士兵。  \t";
             Debug.Log(result);
         }
 
@@ -172,26 +172,31 @@ namespace NumericalSimulation.Scripts.Prefab
             //计算命中次数
             int realAttack = RealAttack(armA);
             int realDefenseMelee = RealDefenseMelee(armB);
-            float hitProbability = Math.Max(0.15f, Math.Min(1, realAttack / (realDefenseMelee * 3))); //命中概率
-            int successAttackNum = (int)(hitProbability * armA.nowTroops); //成功命中次数
+            float hitProbability = Math.Max(0.15f, Math.Min(1, realAttack / (realDefenseMelee * 3f))); //命中概率
+            int successAttackNum = (int)(hitProbability * armA.NowTroops); //成功命中次数
+            Debug.Log("命中概率：" + hitProbability + "  成功命中次数：" + successAttackNum);
 
-            //计算实际杀伤（普通杀伤和破甲杀伤）
-            int realMeleeNormal =
+            //计算单次实际杀伤（普通杀伤和破甲杀伤）
+            float realMeleeNormal =
                 Math.Max(_armDataTypes[armA.armId].meleeNormal - _armDataTypes[armB.armId].armor, 0); //实际普通杀伤
             int armRealMeleeArmor = this.RealMeleeArmor(armA); //兵种的破甲杀伤修正
             float realMeleeArmorFactor =
-                Math.Max(0.1f, Math.Min(1, armRealMeleeArmor / _armDataTypes[armB.armId].armor)); //实际破甲杀伤系数
-            int realMeleeArmor = (int)(armRealMeleeArmor * realMeleeArmorFactor); //实际破甲杀伤
+                Math.Max(0.1f, Math.Min(1, (float)armRealMeleeArmor / _armDataTypes[armB.armId].armor)); //实际破甲杀伤系数
+            float realMeleeArmor = armRealMeleeArmor * realMeleeArmorFactor; //实际破甲杀伤
+            Debug.Log("实际普通杀伤：" + realMeleeNormal + "  实际破甲杀伤：" + realMeleeArmor + "  实际破甲杀伤系数：" +
+                           realMeleeArmorFactor);
 
             //计算实际攻击伤害
-            int totalDamage = successAttackNum * (realMeleeNormal + realMeleeArmor); //攻击产生的总伤害
-            armB.nowHp -= totalDamage; //计算剩余血量
+            int totalDamage = (int)(successAttackNum * (realMeleeNormal + realMeleeArmor)); //攻击产生的总伤害
+            armB.NowHp -= totalDamage; //计算剩余血量
             int theoryMaxNum = _armDataTypes[armB.armId].totalTroops; //理论最大人数
-            int theoryMinNum = theoryMaxNum * (armB.nowHp / _armDataTypes[armB.armId].totalHp); //理论最小人数
+            int theoryMinNum = (int)(theoryMaxNum * ((float)armB.NowHp / _armDataTypes[armB.armId].totalHp)); //理论最小人数
             float computeTroopsFactor = 0.6f; //剩余人数计算系数
-            int theoryNowTroops = theoryMinNum + (int)((theoryMaxNum - theoryMinNum) * Math.Pow(armB.nowHp /
+            int theoryNowTroops = theoryMinNum + (int)((theoryMaxNum - theoryMinNum) * Math.Pow(armB.NowHp /
                 (float)_armDataTypes[armB.armId].totalHp, computeTroopsFactor)); //剩余理论人数
-            armB.nowTroops = Math.Max(theoryMinNum, Math.Min(theoryMaxNum, theoryNowTroops)); //剩余实际人数
+            armB.NowTroops = Math.Max(theoryMinNum, Math.Min(theoryMaxNum, theoryNowTroops)); //剩余实际人数
+            Debug.Log("攻击产生的总伤害：" + totalDamage + "  理论最大人数：" + theoryMaxNum + "  理论最小人数：" + theoryMinNum +
+                           "  剩余理论人数：" + theoryNowTroops);
         }
 
         /// <summary>
