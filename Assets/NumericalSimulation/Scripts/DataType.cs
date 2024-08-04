@@ -17,7 +17,7 @@ namespace NumericalSimulation.Scripts
         /// <summary>
         /// 总血量
         /// </summary>
-        public int totalHP;
+        public int totalHp;
 
         /// <summary>
         /// 总人数
@@ -100,18 +100,110 @@ namespace NumericalSimulation.Scripts
         public int rangeDamage;
 
         /// <summary>
-        /// 作战意志
+        /// 最高作战意志
         /// </summary>
-        public int morale;
+        public int maximumMorale;
 
         /// <summary>
-        /// 疲劳值
+        /// 疲劳值上限
         /// </summary>
-        public int fatigue;
+        public int maximumFatigue;
 
         /// <summary>
         /// 价格
         /// </summary>
         public int cost;
+
+        public ArmDataType(int totalHp)
+        {
+            this.totalHp = totalHp;
+        }
+    }
+
+    /// <summary>
+    /// 在攻击模拟时记录一个单位的实时属性
+    /// </summary>
+    public class ArmData
+    {
+        /// <summary>
+        /// 兵种id
+        /// </summary>
+        public int armId;
+
+        /// <summary>
+        /// 当前血量
+        /// </summary>
+        public int nowHp;
+
+        /// <summary>
+        /// 当前人数
+        /// </summary>
+        public int nowTroops;
+
+        /// <summary>
+        /// 当前弹药量
+        /// </summary>
+        public int nowAmmo;
+
+        /// <summary>
+        /// 当前作战意志
+        /// </summary>
+        public int nowMorale;
+
+        /// <summary>
+        /// 当前疲劳值
+        /// </summary>
+        public int nowFatigue;
+
+        public ArmData(ArmData armData)
+        {
+            armId = armData.armId;
+            nowHp = armData.nowHp;
+            nowTroops = armData.nowTroops;
+            nowAmmo = armData.nowAmmo;
+            nowMorale = armData.nowMorale;
+            nowFatigue = armData.nowFatigue;
+        }
+
+        public ArmData(ArmDataType armDataType, int id)
+        {
+            armId = id;
+            nowHp = armDataType.totalHp;
+            nowTroops = armDataType.totalTroops;
+            nowAmmo = armDataType.ammo;
+            nowMorale = armDataType.maximumMorale;
+            nowFatigue = armDataType.maximumFatigue;
+        }
+
+        public void Reset(ArmData data)
+        {
+            armId = data.armId;
+            nowHp = data.nowHp;
+            nowTroops = data.nowTroops;
+            nowAmmo = data.nowAmmo;
+            nowMorale = data.nowMorale;
+            nowFatigue = data.nowFatigue;
+        }
+    }
+
+    /// <summary>
+    /// 攻击形式
+    /// </summary>
+    public enum AttackFormType
+    {
+        /// <summary>
+        /// 单向攻击：只有队伍a会攻击，b不会反击
+        /// </summary>
+        ONE_WAY_ATTACK,
+
+        /// <summary>
+        /// 互相攻击：a会攻击，b也会反击
+        /// </summary>
+        MUTUAL_ATTACK,
+
+        /// <summary>
+        /// 互相进攻：a会进攻，b也会进攻，同时ab都会反击
+        /// </summary>
+        MUTUAL_OFFENSE
     }
 }
