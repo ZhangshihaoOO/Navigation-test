@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Utils.Script;
+using Random = System.Random;
 
 namespace NumericalSimulation.Scripts.Prefab
 {
@@ -45,7 +46,7 @@ namespace NumericalSimulation.Scripts.Prefab
         /// </summary>
         private Dictionary<int, ArmDataType> _armDataTypes;
 
-        public static Dictionary<string, string> armyAttribute;
+        public static Dictionary<string, string> ArmyAttribute;
 
         private void Awake()
         {
@@ -118,7 +119,7 @@ namespace NumericalSimulation.Scripts.Prefab
                 }
 
                 PrintAttackResult(arm1Old, arm1, arm2Old, arm2, index);
-                if (arm1.NowTroops <= 0 || arm2.NowTroops <= 0 || index > 100)
+                if (arm1.NowTroops <= 0 || arm2.NowTroops <= 0 || index > 50)
                 {
                     break;
                 }
@@ -173,7 +174,7 @@ namespace NumericalSimulation.Scripts.Prefab
             int realAttack = RealAttack(armA);
             int realDefenseMelee = RealDefenseMelee(armB);
             float hitProbability = Math.Max(0.15f, Math.Min(1, realAttack / (realDefenseMelee * 3f))); //命中概率
-            int successAttackNum = (int)(hitProbability * armA.NowTroops); //成功命中次数
+            int successAttackNum = CompleteSuccessAttackNum(hitProbability, armA.NowTroops); //成功命中次数
             Debug.Log("命中概率：" + hitProbability + "  成功命中次数：" + successAttackNum);
 
             //计算单次实际杀伤（普通杀伤和破甲杀伤）
@@ -184,19 +185,20 @@ namespace NumericalSimulation.Scripts.Prefab
                 Math.Max(0.1f, Math.Min(1, (float)armRealMeleeArmor / _armDataTypes[armB.armId].armor)); //实际破甲杀伤系数
             float realMeleeArmor = armRealMeleeArmor * realMeleeArmorFactor; //实际破甲杀伤
             Debug.Log("实际普通杀伤：" + realMeleeNormal + "  实际破甲杀伤：" + realMeleeArmor + "  实际破甲杀伤系数：" +
-                           realMeleeArmorFactor);
+                      realMeleeArmorFactor);
 
             //计算实际攻击伤害
             int totalDamage = (int)(successAttackNum * (realMeleeNormal + realMeleeArmor)); //攻击产生的总伤害
             armB.NowHp -= totalDamage; //计算剩余血量
             int theoryMaxNum = _armDataTypes[armB.armId].totalTroops; //理论最大人数
-            int theoryMinNum = (int)(theoryMaxNum * ((float)armB.NowHp / _armDataTypes[armB.armId].totalHp)); //理论最小人数
-            float computeTroopsFactor = 0.6f; //剩余人数计算系数
+            int theoryMinNum =
+                (int)Math.Ceiling(theoryMaxNum * ((float)armB.NowHp / _armDataTypes[armB.armId].totalHp)); //理论最小人数
+            float computeTroopsFactor = 0.7f; //剩余人数计算系数
             int theoryNowTroops = theoryMinNum + (int)((theoryMaxNum - theoryMinNum) * Math.Pow(armB.NowHp /
                 (float)_armDataTypes[armB.armId].totalHp, computeTroopsFactor)); //剩余理论人数
             armB.NowTroops = Math.Max(theoryMinNum, Math.Min(theoryMaxNum, theoryNowTroops)); //剩余实际人数
             Debug.Log("攻击产生的总伤害：" + totalDamage + "  理论最大人数：" + theoryMaxNum + "  理论最小人数：" + theoryMinNum +
-                           "  剩余理论人数：" + theoryNowTroops);
+                      "  剩余理论人数：" + theoryNowTroops);
         }
 
         /// <summary>
@@ -236,11 +238,36 @@ namespace NumericalSimulation.Scripts.Prefab
         }
 
         /// <summary>
+        /// 计算命中次数
+        /// </summary>
+        /// <param name="hitProbability">命中概率</param>
+        /// <param name="nowTroops">人数</param>
+        /// <returns></returns>
+        private int CompleteSuccessAttackNum(float hitProbability, int nowTroops)
+        {
+            int successAttackNum = 0;
+            Random random = new Random();
+            for (int i = 0; i < nowTroops; i++)
+            {
+                // 生成0到1之间的随机数
+                float randomValue = (float)random.NextDouble();
+
+                // 如果随机数小于命中概率，则计为命中
+                if (randomValue < hitProbability)
+                {
+                    successAttackNum++;
+                }
+            }
+
+            return successAttackNum;
+        }
+
+        /// <summary>
         /// 可以通过属性的英文名称找到中文，因为是工具，就直接写死了
         /// </summary>
         private static void InitArmyAttribute()
         {
-            armyAttribute = new Dictionary<string, string>
+            ArmyAttribute = new Dictionary<string, string>
             {
                 { nameof(ArmDataType.unitName), "兵种名称" },
                 { nameof(ArmDataType.totalHp), "总血量" },

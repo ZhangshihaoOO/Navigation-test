@@ -54,7 +54,7 @@ namespace NumericalSimulation.Scripts.Prefab
                     int row = i % buttonRowNum;
                     rectTransform.anchoredPosition = new Vector2(
                         col * (BUTTON_WIDTH + everySpace) - CHOOSE_NODE_WIDTH / 2f + totalApace,
-                        row * (BUTTON_HEIGHT + everySpace) - CHOOSE_NODE_HEIGHT / 2f + totalApace);
+                        row * (BUTTON_HEIGHT + everySpace) - CHOOSE_NODE_HEIGHT / 2f + everySpace);
                     Button but = button.transform.Find("Button").GetComponent<Button>();
                     but.onClick.AddListener(() => { ChooseArmy(id); });
                     but.transform.Find("Text").GetComponent<Text>().text = type.unitName;
@@ -67,7 +67,7 @@ namespace NumericalSimulation.Scripts.Prefab
             chooseNode.gameObject.SetActive(false);
             _chooseCallBack(id);
             ArmDataType type = _armDataTypes[id];
-            Dictionary<string, string> attribute = UINumericalSimulation.armyAttribute;
+            Dictionary<string, string> attribute = UINumericalSimulation.ArmyAttribute;
             int maxNameLength = 0;
             foreach (var key in attribute.Keys)
             {
