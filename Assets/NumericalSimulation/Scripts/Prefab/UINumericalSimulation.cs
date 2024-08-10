@@ -173,7 +173,7 @@ namespace NumericalSimulation.Scripts.Prefab
             //计算命中次数
             int realAttack = RealAttack(armA);
             int realDefenseMelee = RealDefenseMelee(armB);
-            float hitProbability = Math.Max(0.15f, Math.Min(1, realAttack / (realDefenseMelee * 3f))); //命中概率
+            float hitProbability = Math.Max(0.05f, Math.Min(1, realAttack / (realDefenseMelee * 3f))); //命中概率
             int successAttackNum = CompleteSuccessAttackNum(hitProbability, armA.NowTroops); //成功命中次数
             Debug.Log("命中概率：" + hitProbability + "  成功命中次数：" + successAttackNum);
 
@@ -181,8 +181,8 @@ namespace NumericalSimulation.Scripts.Prefab
             float realMeleeNormal =
                 Math.Max(_armDataTypes[armA.armId].meleeNormal - _armDataTypes[armB.armId].armor, 0); //实际普通杀伤
             int armRealMeleeArmor = this.RealMeleeArmor(armA); //兵种的破甲杀伤修正
-            float realMeleeArmorFactor =
-                Math.Max(0.1f, Math.Min(1, (float)armRealMeleeArmor / _armDataTypes[armB.armId].armor)); //实际破甲杀伤系数
+            float realMeleeArmorFactor = Math.Max(0.1f, Math.Min(1, //实际破甲杀伤系数
+                1 - (_armDataTypes[armB.armId].armor - (float)armRealMeleeArmor) / armRealMeleeArmor * 0.15f));
             float realMeleeArmor = armRealMeleeArmor * realMeleeArmorFactor; //实际破甲杀伤
             Debug.Log("实际普通杀伤：" + realMeleeNormal + "  实际破甲杀伤：" + realMeleeArmor + "  实际破甲杀伤系数：" +
                       realMeleeArmorFactor);

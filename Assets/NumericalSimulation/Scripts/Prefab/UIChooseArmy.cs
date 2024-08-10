@@ -54,7 +54,7 @@ namespace NumericalSimulation.Scripts.Prefab
                     int row = i % buttonRowNum;
                     rectTransform.anchoredPosition = new Vector2(
                         col * (BUTTON_WIDTH + everySpace) - CHOOSE_NODE_WIDTH / 2f + totalApace,
-                        row * (BUTTON_HEIGHT + everySpace) - CHOOSE_NODE_HEIGHT / 2f + everySpace);
+                        -row * (BUTTON_HEIGHT + everySpace) + CHOOSE_NODE_HEIGHT / 2f - everySpace);
                     Button but = button.transform.Find("Button").GetComponent<Button>();
                     but.onClick.AddListener(() => { ChooseArmy(id); });
                     but.transform.Find("Text").GetComponent<Text>().text = type.unitName;
