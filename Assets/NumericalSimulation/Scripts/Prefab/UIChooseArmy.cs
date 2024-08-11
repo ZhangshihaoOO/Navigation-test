@@ -94,7 +94,8 @@ namespace NumericalSimulation.Scripts.Prefab
             lines += attribute[nameof(ArmDataType.range)] + "：" + type.range + "\n";
             lines += attribute[nameof(ArmDataType.reload)] + "：" + type.reload + "\n";
             lines += attribute[nameof(ArmDataType.accuracy)] + "：" + type.accuracy + "\n";
-            lines += attribute[nameof(ArmDataType.rangeDamage)] + "：" + type.rangeDamage + "\n";
+            lines += attribute[nameof(ArmDataType.rangeNormal)] + "：" + type.rangeNormal + "\n";
+            lines += attribute[nameof(ArmDataType.rangeArmor)] + "：" + type.rangeArmor + "\n";
             lines += attribute[nameof(ArmDataType.maximumMorale)] + "：" + type.maximumMorale + "\n";
             lines += attribute[nameof(ArmDataType.maximumFatigue)] + "：" + type.maximumFatigue + "\n";
             lines += attribute[nameof(ArmDataType.cost)] + "：" + type.cost + "\n";

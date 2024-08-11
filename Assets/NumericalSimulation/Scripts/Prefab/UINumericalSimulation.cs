@@ -60,7 +60,9 @@ namespace NumericalSimulation.Scripts.Prefab
             {
                 new("单向攻击"),
                 new("互相攻击"),
-                new("互相进攻")
+                new("互相进攻"),
+                new("单向射击"),
+                new("互相射击")
             };
             // 将选项列表添加到Dropdown组件
             attackFormDropdown.options = options;
@@ -116,6 +118,19 @@ namespace NumericalSimulation.Scripts.Prefab
                         OneAttack(arm1Before, arm2);
                     }
                         break;
+                    case AttackFormType.ONE_WAY_SHOOTING:
+                    {
+                        //单位1射击单位2
+                        OneShoot(arm1, arm2);
+                    }
+                        break;
+                    case AttackFormType.MUTUAL_SHOOTING:
+                    {
+                        //单位1射击单位2，单位2再射击单位1
+                        OneShoot(arm1, arm2);
+                        OneShoot(arm2, arm1);
+                    }
+                        break;
                 }
 
                 PrintAttackResult(arm1Old, arm1, arm2Old, arm2, index);
@@ -154,6 +169,16 @@ namespace NumericalSimulation.Scripts.Prefab
                     result += "单位1对单位2发动了进攻，单位2进行了反击。随后单位2也对单位1发动了进攻，单位1也进行了反击。  \t";
                 }
                     break;
+                case AttackFormType.ONE_WAY_SHOOTING:
+                {
+                    result += "单位1对单位2发动了射击。  \t";
+                }
+                    break;
+                case AttackFormType.MUTUAL_SHOOTING:
+                {
+                    result += "单位1对单位2发动了射击，单位2也对单位1发动了射击。  \t";
+                }
+                    break;
             }
 
             result += "单位1损失了" + (arm1Old.NowHp - arm1.NowHp) + "血量。损失了" + (arm1Old.NowTroops - arm1.NowTroops) +
@@ -179,10 +204,10 @@ namespace NumericalSimulation.Scripts.Prefab
 
             //计算单次实际杀伤（普通杀伤和破甲杀伤）
             float realMeleeNormal =
-                Math.Max(_armDataTypes[armA.armId].meleeNormal - _armDataTypes[armB.armId].armor / 2, 0); //实际普通杀伤
+                Math.Max(_armDataTypes[armA.ARMId].meleeNormal - _armDataTypes[armB.ARMId].armor / 2, 0); //实际普通杀伤
             int armRealMeleeArmor = this.RealMeleeArmor(armA); //兵种的破甲杀伤修正
             float realMeleeArmorFactor = Math.Max(0.1f, Math.Min(1, //实际破甲杀伤系数
-                1 - (_armDataTypes[armB.armId].armor - (float)armRealMeleeArmor) / armRealMeleeArmor * 0.15f));
+                1 - (_armDataTypes[armB.ARMId].armor - (float)armRealMeleeArmor) / armRealMeleeArmor * 0.15f));
             float realMeleeArmor = armRealMeleeArmor * realMeleeArmorFactor; //实际破甲杀伤
             Debug.Log("实际普通杀伤：" + realMeleeNormal + "  实际破甲杀伤：" + realMeleeArmor + "  实际破甲杀伤系数：" +
                       realMeleeArmorFactor);
@@ -190,12 +215,50 @@ namespace NumericalSimulation.Scripts.Prefab
             //计算实际攻击伤害
             int totalDamage = (int)(successAttackNum * (realMeleeNormal + realMeleeArmor)); //攻击产生的总伤害
             armB.NowHp -= totalDamage; //计算剩余血量
-            int theoryMaxNum = _armDataTypes[armB.armId].totalTroops; //理论最大人数
+            int theoryMaxNum = _armDataTypes[armB.ARMId].totalTroops; //理论最大人数
             int theoryMinNum =
-                (int)Math.Ceiling(theoryMaxNum * ((float)armB.NowHp / _armDataTypes[armB.armId].totalHp)); //理论最小人数
+                (int)Math.Ceiling(theoryMaxNum * ((float)armB.NowHp / _armDataTypes[armB.ARMId].totalHp)); //理论最小人数
             float computeTroopsFactor = 0.7f; //剩余人数计算系数
             int theoryNowTroops = theoryMinNum + (int)((theoryMaxNum - theoryMinNum) * Math.Pow(armB.NowHp /
-                (float)_armDataTypes[armB.armId].totalHp, computeTroopsFactor)); //剩余理论人数
+                (float)_armDataTypes[armB.ARMId].totalHp, computeTroopsFactor)); //剩余理论人数
+            armB.NowTroops = Math.Max(theoryMinNum, Math.Min(theoryMaxNum, theoryNowTroops)); //剩余实际人数
+            Debug.Log("攻击产生的总伤害：" + totalDamage + "  理论最大人数：" + theoryMaxNum + "  理论最小人数：" + theoryMinNum +
+                      "  剩余理论人数：" + theoryNowTroops);
+        }
+
+        /// <summary>
+        /// 一次射击，默认a是攻击方，b是被攻击方
+        /// </summary>
+        /// <param name="armA">单位a</param>
+        /// <param name="armB">单位b</param>
+        private void OneShoot(ArmData armA, ArmData armB)
+        {
+            //计算命中次数
+            int realAccuracy = RealAccuracy(armA);
+            int realDefenseRange = RealDefenseRange(armB);
+            float hitProbability = Math.Max(0.05f, Math.Min(1, realAccuracy / (realDefenseRange * 3f))); //命中概率
+            int successAttackNum = CompleteSuccessAttackNum(hitProbability, armA.NowTroops); //成功命中次数
+            Debug.Log("命中概率：" + hitProbability + "  成功命中次数：" + successAttackNum);
+
+            //计算单次实际杀伤（普通杀伤和破甲杀伤）
+            float realRangeNormal =
+                Math.Max(_armDataTypes[armA.ARMId].rangeNormal - _armDataTypes[armB.ARMId].armor / 2, 0); //实际普通杀伤
+            int armRealRangeArmor = this.RealRangeArmor(armA); //兵种的破甲杀伤修正
+            float realRangeArmorFactor = Math.Max(0.1f, Math.Min(1, //实际破甲杀伤系数
+                1 - (_armDataTypes[armB.ARMId].armor - (float)armRealRangeArmor) / armRealRangeArmor * 0.15f));
+            float realRangeArmor = armRealRangeArmor * realRangeArmorFactor; //实际破甲杀伤
+            Debug.Log("实际普通杀伤：" + realRangeNormal + "  实际破甲杀伤：" + realRangeArmor + "  实际破甲杀伤系数：" +
+                      realRangeArmorFactor);
+
+            //计算实际攻击伤害
+            int totalDamage = (int)(successAttackNum * (realRangeNormal + realRangeArmor)); //攻击产生的总伤害
+            armB.NowHp -= totalDamage; //计算剩余血量
+            int theoryMaxNum = _armDataTypes[armB.ARMId].totalTroops; //理论最大人数
+            int theoryMinNum =
+                (int)Math.Ceiling(theoryMaxNum * ((float)armB.NowHp / _armDataTypes[armB.ARMId].totalHp)); //理论最小人数
+            float computeTroopsFactor = 0.7f; //剩余人数计算系数
+            int theoryNowTroops = theoryMinNum + (int)((theoryMaxNum - theoryMinNum) * Math.Pow(armB.NowHp /
+                (float)_armDataTypes[armB.ARMId].totalHp, computeTroopsFactor)); //剩余理论人数
             armB.NowTroops = Math.Max(theoryMinNum, Math.Min(theoryMaxNum, theoryNowTroops)); //剩余实际人数
             Debug.Log("攻击产生的总伤害：" + totalDamage + "  理论最大人数：" + theoryMaxNum + "  理论最小人数：" + theoryMinNum +
                       "  剩余理论人数：" + theoryNowTroops);
@@ -208,7 +271,7 @@ namespace NumericalSimulation.Scripts.Prefab
         /// <returns></returns>
         private int RealAttack(ArmData armData)
         {
-            int correctAttack = _armDataTypes[armData.armId].attack;
+            int correctAttack = _armDataTypes[armData.ARMId].attack;
             int realAttack = correctAttack;
             return realAttack;
         }
@@ -220,7 +283,7 @@ namespace NumericalSimulation.Scripts.Prefab
         /// <returns></returns>
         private int RealDefenseMelee(ArmData armData)
         {
-            int correctDefenseMelee = _armDataTypes[armData.armId].defenseMelee;
+            int correctDefenseMelee = _armDataTypes[armData.ARMId].defenseMelee;
             int realDefenseMelee = correctDefenseMelee;
             return realDefenseMelee;
         }
@@ -232,9 +295,45 @@ namespace NumericalSimulation.Scripts.Prefab
         /// <returns></returns>
         private int RealMeleeArmor(ArmData armData)
         {
-            int correctMeleeArmor = _armDataTypes[armData.armId].meleeArmor;
+            int correctMeleeArmor = _armDataTypes[armData.ARMId].meleeArmor;
             int realMeleeArmor = correctMeleeArmor;
             return realMeleeArmor;
+        }
+
+        /// <summary>
+        /// 计算实际射击精度
+        /// </summary>
+        /// <param name="armData"></param>
+        /// <returns></returns>
+        private int RealAccuracy(ArmData armData)
+        {
+            int correctAccuracy = _armDataTypes[armData.ARMId].accuracy;
+            int realAccuracy = correctAccuracy;
+            return realAccuracy;
+        }
+
+        /// <summary>
+        /// 计算实际远程防御能力
+        /// </summary>
+        /// <param name="armData"></param>
+        /// <returns></returns>
+        private int RealDefenseRange(ArmData armData)
+        {
+            int correctDefenseRange = _armDataTypes[armData.ARMId].defenseRange;
+            int realDefenseRange = correctDefenseRange;
+            return realDefenseRange;
+        }
+
+        /// <summary>
+        /// 计算实际远程破甲杀伤
+        /// </summary>
+        /// <param name="armData"></param>
+        /// <returns></returns>
+        private int RealRangeArmor(ArmData armData)
+        {
+            int correctRangeArmor = _armDataTypes[armData.ARMId].rangeArmor;
+            int realRangeArmor = correctRangeArmor;
+            return realRangeArmor;
         }
 
         /// <summary>
@@ -286,7 +385,8 @@ namespace NumericalSimulation.Scripts.Prefab
                 { nameof(ArmDataType.range), "射程" },
                 { nameof(ArmDataType.reload), "装填速度" },
                 { nameof(ArmDataType.accuracy), "精度" },
-                { nameof(ArmDataType.rangeDamage), "远程杀伤" },
+                { nameof(ArmDataType.rangeNormal), "远程杀伤（普通）" },
+                { nameof(ArmDataType.rangeArmor), "远程杀伤（破甲）" },
                 { nameof(ArmDataType.maximumMorale), "作战意志" },
                 { nameof(ArmDataType.maximumFatigue), "疲劳值" },
                 { nameof(ArmDataType.cost), "价格" }

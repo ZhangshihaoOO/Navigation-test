@@ -95,9 +95,14 @@ namespace NumericalSimulation.Scripts
         public int accuracy;
 
         /// <summary>
-        /// 远程杀伤
+        /// 远程杀伤（普通）
         /// </summary>
-        public int rangeDamage;
+        public int rangeNormal;
+
+        /// <summary>
+        /// 远程杀伤（破甲）
+        /// </summary>
+        public int rangeArmor;
 
         /// <summary>
         /// 最高作战意志
@@ -123,13 +128,13 @@ namespace NumericalSimulation.Scripts
         /// <summary>
         /// 兵种id
         /// </summary>
-        public int armId;
+        public int ARMId;
+
+        private int _nowHp;
 
         /// <summary>
         /// 当前血量
         /// </summary>
-        private int _nowHp;
-
         public int NowHp
         {
             get => _nowHp;
@@ -143,11 +148,11 @@ namespace NumericalSimulation.Scripts
             }
         }
 
+        private int _nowTroops;
+
         /// <summary>
         /// 当前人数
         /// </summary>
-        private int _nowTroops;
-
         public int NowTroops
         {
             get => _nowTroops;
@@ -164,46 +169,46 @@ namespace NumericalSimulation.Scripts
         /// <summary>
         /// 当前弹药量
         /// </summary>
-        public int nowAmmo;
+        public int NowAmmo;
 
         /// <summary>
         /// 当前作战意志
         /// </summary>
-        public int nowMorale;
+        public int NowMorale;
 
         /// <summary>
         /// 当前疲劳值
         /// </summary>
-        public int nowFatigue;
+        public int NowFatigue;
 
         public ArmData(ArmData armData)
         {
-            armId = armData.armId;
+            ARMId = armData.ARMId;
             _nowHp = armData._nowHp;
             _nowTroops = armData._nowTroops;
-            nowAmmo = armData.nowAmmo;
-            nowMorale = armData.nowMorale;
-            nowFatigue = armData.nowFatigue;
+            NowAmmo = armData.NowAmmo;
+            NowMorale = armData.NowMorale;
+            NowFatigue = armData.NowFatigue;
         }
 
         public ArmData(ArmDataType armDataType, int id)
         {
-            armId = id;
+            ARMId = id;
             _nowHp = armDataType.totalHp;
             _nowTroops = armDataType.totalTroops;
-            nowAmmo = armDataType.ammo;
-            nowMorale = armDataType.maximumMorale;
-            nowFatigue = armDataType.maximumFatigue;
+            NowAmmo = armDataType.ammo;
+            NowMorale = armDataType.maximumMorale;
+            NowFatigue = armDataType.maximumFatigue;
         }
 
         public void Reset(ArmData data)
         {
-            armId = data.armId;
+            ARMId = data.ARMId;
             _nowHp = data._nowHp;
             _nowTroops = data._nowTroops;
-            nowAmmo = data.nowAmmo;
-            nowMorale = data.nowMorale;
-            nowFatigue = data.nowFatigue;
+            NowAmmo = data.NowAmmo;
+            NowMorale = data.NowMorale;
+            NowFatigue = data.NowFatigue;
         }
     }
 
@@ -225,6 +230,16 @@ namespace NumericalSimulation.Scripts
         /// <summary>
         /// 互相进攻：a会进攻，b也会进攻，同时ab都会反击
         /// </summary>
-        MUTUAL_OFFENSE
+        MUTUAL_OFFENSE,
+
+        /// <summary>
+        /// 单向射击
+        /// </summary>
+        ONE_WAY_SHOOTING,
+
+        /// <summary>
+        /// 互相射击
+        /// </summary>
+        MUTUAL_SHOOTING
     }
 }
