@@ -113,11 +113,6 @@ namespace NumericalSimulation.Scripts
         /// 价格
         /// </summary>
         public int cost;
-
-        public ArmDataType(int totalHp)
-        {
-            this.totalHp = totalHp;
-        }
     }
 
     /// <summary>
