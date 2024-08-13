@@ -166,29 +166,59 @@ namespace NumericalSimulation.Scripts
             }
         }
 
+        private int _nowAmmo;
+
         /// <summary>
         /// 当前弹药量
         /// </summary>
-        public int NowAmmo;
+        public int NowAmmo
+        {
+            get => _nowAmmo;
+            set => _nowAmmo = value;
+        }
+
+        private int _nowMorale;
 
         /// <summary>
         /// 当前作战意志
         /// </summary>
-        public int NowMorale;
+        public int NowMorale
+        {
+            get => _nowMorale;
+            set => _nowMorale = value;
+        }
+
+        private int _nowFatigue;
 
         /// <summary>
         /// 当前疲劳值
         /// </summary>
-        public int NowFatigue;
+        public int NowFatigue
+        {
+            get => _nowFatigue;
+            set => _nowFatigue = value;
+        }
+
+        /// <summary>
+        /// 单位是否在冲锋（模拟时才会用到）
+        /// </summary>
+        public bool IsCharge;
+
+        /// <summary>
+        /// 单位是否在坚守
+        /// </summary>
+        public bool IsStick;
 
         public ArmData(ArmData armData)
         {
             ARMId = armData.ARMId;
             _nowHp = armData._nowHp;
             _nowTroops = armData._nowTroops;
-            NowAmmo = armData.NowAmmo;
-            NowMorale = armData.NowMorale;
-            NowFatigue = armData.NowFatigue;
+            _nowAmmo = armData._nowAmmo;
+            _nowMorale = armData._nowMorale;
+            _nowFatigue = armData._nowFatigue;
+            IsCharge = armData.IsCharge;
+            IsStick = armData.IsStick;
         }
 
         public ArmData(ArmDataType armDataType, int id)
@@ -196,9 +226,11 @@ namespace NumericalSimulation.Scripts
             ARMId = id;
             _nowHp = armDataType.totalHp;
             _nowTroops = armDataType.totalTroops;
-            NowAmmo = armDataType.ammo;
-            NowMorale = armDataType.maximumMorale;
-            NowFatigue = armDataType.maximumFatigue;
+            _nowAmmo = armDataType.ammo;
+            _nowMorale = armDataType.maximumMorale;
+            _nowFatigue = armDataType.maximumFatigue;
+            IsCharge = false;
+            IsStick = false;
         }
 
         public void Reset(ArmData data)
@@ -206,9 +238,9 @@ namespace NumericalSimulation.Scripts
             ARMId = data.ARMId;
             _nowHp = data._nowHp;
             _nowTroops = data._nowTroops;
-            NowAmmo = data.NowAmmo;
-            NowMorale = data.NowMorale;
-            NowFatigue = data.NowFatigue;
+            _nowAmmo = data._nowAmmo;
+            _nowMorale = data._nowMorale;
+            _nowFatigue = 0;
         }
     }
 

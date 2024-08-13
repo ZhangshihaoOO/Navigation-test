@@ -36,6 +36,20 @@ namespace NumericalSimulation.Scripts.Prefab
         /// </summary>
         private bool _hasFatigue;
 
+        public Toggle chargeToggle;
+
+        /// <summary>
+        /// 进攻方是否冲锋，只有选择互相攻击时才有用
+        /// </summary>
+        private bool _hasCharge;
+
+        public Toggle stickToggle;
+
+        /// <summary>
+        /// 防御方是否坚守，只有选择互相攻击，单向射击时才有用
+        /// </summary>
+        private bool _hasStick;
+
         /// <summary>
         /// 开始模拟
         /// </summary>
@@ -73,6 +87,8 @@ namespace NumericalSimulation.Scripts.Prefab
 
             moraleToggle.onValueChanged.AddListener(value => _hasMorale = value);
             fatigueToggle.onValueChanged.AddListener(value => _hasFatigue = value);
+            chargeToggle.onValueChanged.AddListener(value => _hasCharge = value);
+            stickToggle.onValueChanged.AddListener(value => _hasStick = value);
 
             startImitateButton.onClick.AddListener(StartImitate);
         }
@@ -100,6 +116,16 @@ namespace NumericalSimulation.Scripts.Prefab
                         break;
                     case AttackFormType.MUTUAL_ATTACK:
                     {
+                        if (_hasCharge)
+                        {
+                            arm1.IsCharge = true;
+                        }
+
+                        if (_hasStick)
+                        {
+                            arm2.IsStick = true;
+                        }
+
                         //单位1进攻单位2，单位2反击
                         ArmData arm2Before = new ArmData(arm2);
                         OneAttack(arm1, arm2);
@@ -120,6 +146,11 @@ namespace NumericalSimulation.Scripts.Prefab
                         break;
                     case AttackFormType.ONE_WAY_SHOOTING:
                     {
+                        if (_hasStick)
+                        {
+                            arm2.IsStick = true;
+                        }
+
                         //单位1射击单位2
                         OneShoot(arm1, arm2);
                     }
@@ -265,43 +296,83 @@ namespace NumericalSimulation.Scripts.Prefab
         }
 
         /// <summary>
-        /// 计算实际攻击能力
+        /// 计算实际攻击能力，计算规则原则上先加后乘
         /// </summary>
         /// <param name="armData"></param>
         /// <returns></returns>
         private int RealAttack(ArmData armData)
         {
             int correctAttack = _armDataTypes[armData.ARMId].attack;
-            int realAttack = correctAttack;
+            if (armData.IsCharge)
+            {
+                correctAttack += _armDataTypes[armData.ARMId].charge;
+            }
+
+            if (armData.IsStick)
+            {
+                correctAttack = (int)(correctAttack * 0.75f);
+            }
+
+            int realAttack = correctAttack; //修正后攻击能力
+            if (_hasMorale)
+            {
+                realAttack = ComputeCorrectMorale(realAttack, armData);
+            }
+
+            if (_hasFatigue)
+            {
+                realAttack = ComputeCorrectFatigue(realAttack, armData);
+            }
+
             return realAttack;
         }
 
         /// <summary>
-        /// 计算实际近战防御能力
+        /// 计算实际近战防御能力，计算规则原则上先加后乘
         /// </summary>
         /// <param name="armData"></param>
         /// <returns></returns>
         private int RealDefenseMelee(ArmData armData)
         {
             int correctDefenseMelee = _armDataTypes[armData.ARMId].defenseMelee;
-            int realDefenseMelee = correctDefenseMelee;
+            if (armData.IsStick)
+            {
+                correctDefenseMelee = (int)(correctDefenseMelee * 1.4f);
+            }
+
+            int realDefenseMelee = correctDefenseMelee; //修正后防御能力
+            if (_hasMorale)
+            {
+                realDefenseMelee = ComputeCorrectMorale(realDefenseMelee, armData);
+            }
+
+            if (_hasFatigue)
+            {
+                realDefenseMelee = ComputeCorrectFatigue(realDefenseMelee, armData);
+            }
+
             return realDefenseMelee;
         }
 
         /// <summary>
-        /// 计算实际破甲杀伤
+        /// 计算实际破甲杀伤，计算规则原则上先加后乘
         /// </summary>
         /// <param name="armData"></param>
         /// <returns></returns>
         private int RealMeleeArmor(ArmData armData)
         {
             int correctMeleeArmor = _armDataTypes[armData.ARMId].meleeArmor;
+            if (armData.IsCharge)
+            {
+                correctMeleeArmor += (int)(_armDataTypes[armData.ARMId].charge * 0.1f);
+            }
+
             int realMeleeArmor = correctMeleeArmor;
             return realMeleeArmor;
         }
 
         /// <summary>
-        /// 计算实际射击精度
+        /// 计算实际射击精度，计算规则原则上先加后乘
         /// </summary>
         /// <param name="armData"></param>
         /// <returns></returns>
@@ -309,6 +380,16 @@ namespace NumericalSimulation.Scripts.Prefab
         {
             int correctAccuracy = _armDataTypes[armData.ARMId].accuracy;
             int realAccuracy = correctAccuracy;
+            if (_hasMorale)
+            {
+                realAccuracy = ComputeCorrectMorale(realAccuracy, armData);
+            }
+
+            if (_hasFatigue)
+            {
+                realAccuracy = ComputeCorrectFatigue(realAccuracy, armData);
+            }
+
             return realAccuracy;
         }
 
@@ -321,7 +402,35 @@ namespace NumericalSimulation.Scripts.Prefab
         {
             int correctDefenseRange = _armDataTypes[armData.ARMId].defenseRange;
             int realDefenseRange = correctDefenseRange;
+            if (_hasMorale)
+            {
+                realDefenseRange = ComputeCorrectMorale(realDefenseRange, armData);
+            }
+
+            if (_hasFatigue)
+            {
+                realDefenseRange = ComputeCorrectFatigue(realDefenseRange, armData);
+            }
+
             return realDefenseRange;
+        }
+
+        /// <summary>
+        /// 计算作战意志修正
+        /// </summary>
+        private int ComputeCorrectMorale(int value, ArmData armData)
+        {
+            return (int)(value * (1 - (_armDataTypes[armData.ARMId].maximumMorale - armData.NowMorale) /
+                (float)_armDataTypes[armData.ARMId].maximumMorale * 0.2f));
+        }
+
+        /// <summary>
+        /// 计算疲劳值修正
+        /// </summary>
+        private int ComputeCorrectFatigue(int value, ArmData armData)
+        {
+            return (int)(value * (1 - armData.NowFatigue /
+                (float)_armDataTypes[armData.ARMId].maximumFatigue * 0.5f));
         }
 
         /// <summary>
